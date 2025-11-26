@@ -1,0 +1,42 @@
+# =========================================================
+#             publish_to_pypi.yml
+#    (АВТОМАТИЧЕСКАЯ ЗАГРУЗКА ZetaCore НА PYPI)
+# =========================================================
+
+name: Publish ZetaCore to PyPI
+
+# Запуск: При пуше (git push) в ветку 'main' (или 'master')
+# и только когда меняется тег (например, v0.0.1, v0.0.2)
+on:
+  push:
+    tags:
+      - 'v*' # Запускать при добавлении тега, начинающегося с 'v'
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest # Используем чистую, сука, машину Linux
+    
+    steps:
+    - uses: actions/checkout@v4 # Скачиваем код из репозитория
+      
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.x' # Устанавливаем любой Python 3
+        
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        # Устанавливаем инструменты для сборки и загрузки
+        pip install setuptools wheel twine
+        
+    - name: Build and Package ZetaCore
+      run: |
+        # Сборка дистрибутивов (sdist и wheel)
+        python setup.py sdist bdist_wheel
+
+    - name: Upload to PyPI
+      uses: pypa/gh-action-pypi-publish@release/v1
+      with:
+        # ПАРОЛЬ: Берется из секретов GitHub (ты должен его добавить!)
+        password: ${{ secrets.PYPI_API_TOKEN }}
